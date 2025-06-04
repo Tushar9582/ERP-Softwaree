@@ -1,8 +1,11 @@
 import React, { useState } from "react";
-import { FaTachometerAlt, FaBoxes, FaFileInvoice, FaExchangeAlt, FaTruck, FaUsers, FaClipboardList, FaCog, FaChartBar, FaUserTie } from "react-icons/fa";
+import { 
+  FaTachometerAlt, FaBoxes, FaFileInvoice, FaExchangeAlt, 
+  FaTruck, FaUsers, FaClipboardList, FaCog, FaChartBar, FaUserTie 
+} from "react-icons/fa";
 import "./Sidebar.css";
 
-function Sidebar() {
+function Sidebar({ onMenuItemClick }) {
   const [activeItem, setActiveItem] = useState("Dashboard");
 
   const menuItems = [
@@ -18,6 +21,11 @@ function Sidebar() {
     { name: "Settings", icon: <FaCog /> },
   ];
 
+  const handleClick = (itemName) => {
+    setActiveItem(itemName);
+    onMenuItemClick(itemName);
+  };
+
   return (
     <aside className="sidebar">
       <div className="logo-box">
@@ -30,7 +38,7 @@ function Sidebar() {
           <li
             key={item.name}
             className={activeItem === item.name ? "active" : ""}
-            onClick={() => setActiveItem(item.name)}
+            onClick={() => handleClick(item.name)}
           >
             {item.icon}
             <span>{item.name}</span>

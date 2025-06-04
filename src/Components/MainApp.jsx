@@ -20,7 +20,7 @@ const styles = {
   },
   content: {
     flex: 1,
-    padding: "40px",
+    padding: "170px",
     backgroundColor: "#f9f9f9",
   },
 };
