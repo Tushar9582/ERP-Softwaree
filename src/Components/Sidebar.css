@@ -1,0 +1,59 @@
+.sidebar {
+  width: 260px;
+  background-color: #7c1c2e;
+  color: white;
+  height: 100vh;
+  padding: 20px;
+  font-family: "Segoe UI", sans-serif;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.logo-box {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.logo-box h2 {
+  font-size: 20px;
+  margin: 10px 0 5px;
+}
+
+.logo-box p {
+  font-size: 12px;
+  color: #f2bcbc;
+}
+
+.menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.menu li {
+  display: flex;
+  align-items: center;
+  padding: 12px 15px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.menu li span {
+  margin-left: 12px;
+  font-size: 15px;
+}
+
+.menu li:hover {
+  background-color: #a0293f;
+}
+
+.menu li.active {
+  background-color: #fff;
+  color: #7c1c2e;
+  font-weight: bold;
+}
+
+.menu li.active svg {
+  color: #7c1c2e;
+}
