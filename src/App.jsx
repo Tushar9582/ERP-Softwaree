@@ -22,8 +22,8 @@ const componentMap = {
   "OrderManagement": loadComponent("Order Management", "./Components/OrderManagement"),
   "ClientManagement": loadComponent("Client Management", "./Components/ClientManagement"),
   "InvoiceGeneration": loadComponent("Invoice Generation", "./Components/InvoiceGeneration"),
-  "ImportExport": loadComponent("Import/Export", "./Components/ImportExport"),
-  "ShippingLogistics": loadComponent("Shipping & Logistics", "./Components/ShippingLogistics"),
+  // "NewBill": loadComponent("NewBill", "./CompNewBill"),
+  "NewBill": loadComponent("ShiNewBill", "./Components/NewBill"),
   "HumanResources": loadComponent("Human Resources", "./Components/HumanResources"),
   "ReportsAnalytics": loadComponent("Reports & Analytics", "./Components/ReportsAnalytics"),
   "Settings": loadComponent("Settings", "./Components/Settings")

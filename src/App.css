@@ -21,12 +21,12 @@ body {
 /* Layout */
 .app-container {
   display: flex;
-  min-height: 100vh;
+  min-height: 90vh;
 }
 
 .main-content {
   flex: 1;
-  padding: 2rem;
+  /* padding: 2rem; */
   background-color: var(--light-gray);
   overflow-y: auto;
 }

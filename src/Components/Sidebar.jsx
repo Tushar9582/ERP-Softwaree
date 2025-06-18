@@ -22,8 +22,8 @@ const Sidebar = ({ activeItem, onMenuItemClick, onLogout }) => {
     { id: "OrderManagement", icon: <FaClipboardList />, label: "Order Management" },
     { id: "ClientManagement", icon: <FaUsers />, label: "Client Management" },
     { id: "InvoiceGeneration", icon: <FaFileInvoice />, label: "Invoice Generation" },
-    { id: "ImportExport", icon: <FaExchangeAlt />, label: "Import/Export" },
-    { id: "ShippingLogistics", icon: <FaTruck />, label: "Shipping & Logistics" },
+    // { id: "NewBill", icon: <FaExchangeAlt />, label: "Newbill" },
+    { id: "NewBill", icon: <FaTruck />, label: "NewBill" },
     { id: "HumanResources", icon: <FaUserTie />, label: "Human Resources" },
     { id: "ReportsAnalytics", icon: <FaChartBar />, label: "Reports & Analytics" },
     { id: "Settings", icon: <FaCog />, label: "Settings" }

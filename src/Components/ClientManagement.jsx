@@ -1,12 +1,27 @@
 import { useState, useEffect } from 'react';
 import { FaSearch, FaEdit, FaTrash, FaPlus, FaTimes, FaSave } from 'react-icons/fa';
+import { initializeApp } from "firebase/app";
+import { getDatabase, ref, onValue, push, update, remove } from "firebase/database";
 import './ClientManagement.css';
 
+// Firebase configuration remains unchanged
+const firebaseConfig = {
+  apiKey: "AIzaSyCXc6nHRIzXWnjd-ie2gtr_-4AVKm7_sf8",
+  authDomain: "tansupliments-53fb4.firebaseapp.com",
+  databaseURL: "https://tansupliments-53fb4-default-rtdb.firebaseio.com",
+  projectId: "tansupliments-53fb4",
+  storageBucket: "tansupliments-53fb4.firebasestorage.app",
+  messagingSenderId: "354616029451",
+  appId: "1:354616029451:web:dc3a0dc92b8fe791abb20e"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
+const clientsRef = ref(database, 'clients');
+
 const ClientManagement = () => {
-  const [clients, setClients] = useState(() => {
-    const savedClients = localStorage.getItem('erp-clients');
-    return savedClients ? JSON.parse(savedClients) : [];
-  });
+  const [clients, setClients] = useState([]);
   const [newClient, setNewClient] = useState({
     name: '',
     email: '',
@@ -19,11 +34,35 @@ const ClientManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [firebaseError, setFirebaseError] = useState(null);
 
-  // Save clients to localStorage whenever they change
+  // Load clients from Firebase
   useEffect(() => {
-    localStorage.setItem('erp-clients', JSON.stringify(clients));
-  }, [clients]);
+    const unsubscribe = onValue(clientsRef, (snapshot) => {
+      try {
+        const data = snapshot.val();
+        if (data) {
+          const clientsArray = Object.keys(data).map(key => ({
+            id: key,
+            ...data[key]
+          }));
+          setClients(clientsArray);
+        } else {
+          setClients([]);
+        }
+        setFirebaseError(null);
+      } catch (error) {
+        console.error("Firebase read error:", error);
+        setFirebaseError("Failed to load clients. Please refresh the page.");
+      }
+    }, (error) => {
+      console.error("Firebase connection error:", error);
+      setFirebaseError("Cannot connect to database. Check your internet connection.");
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -31,7 +70,6 @@ const ClientManagement = () => {
       ...prev,
       [name]: value
     }));
-    // Clear error when user types
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
@@ -49,18 +87,30 @@ const ClientManagement = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const addClient = () => {
+  const addClient = async () => {
     if (!validateForm()) return;
 
-    if (editingId !== null) {
-      setClients(clients.map(client =>
-        client.id === editingId ? { ...newClient, id: editingId } : client
-      ));
-      setEditingId(null);
-    } else {
-      setClients([...clients, { ...newClient, id: Date.now() }]);
+    setLoading(true);
+    setFirebaseError(null);
+    
+    try {
+      if (editingId !== null) {
+        // Update existing client - remove id before saving
+        const { id, ...clientData } = newClient;
+        await update(ref(database, `clients/${editingId}`), clientData);
+        setEditingId(null);
+      } else {
+        // Add new client - remove id (Firebase will generate)
+        const { id, ...clientData } = newClient;
+        await push(clientsRef, clientData);
+      }
+      resetForm();
+    } catch (error) {
+      console.error("Firebase save error:", error);
+      setFirebaseError('Failed to save client. Please check your connection and try again.');
+    } finally {
+      setLoading(false);
     }
-    resetForm();
   };
 
   const editClient = (id) => {
@@ -72,9 +122,14 @@ const ClientManagement = () => {
     }
   };
 
-  const deleteClient = (id) => {
+  const deleteClient = async (id) => {
     if (window.confirm('Are you sure you want to delete this client?')) {
-      setClients(clients.filter(client => client.id !== id));
+      try {
+        await remove(ref(database, `clients/${id}`));
+      } catch (error) {
+        console.error("Error deleting client:", error);
+        setFirebaseError('Failed to delete client. Please try again.');
+      }
     }
   };
 
@@ -90,6 +145,7 @@ const ClientManagement = () => {
     setEditingId(null);
     setShowForm(false);
     setErrors({});
+    setFirebaseError(null);
   };
 
   const filteredClients = clients.filter(client =>
@@ -100,6 +156,13 @@ const ClientManagement = () => {
 
   return (
     <div className="client-management">
+      {firebaseError && (
+        <div className="firebase-error">
+          {firebaseError}
+          <button onClick={() => setFirebaseError(null)}>×</button>
+        </div>
+      )}
+
       <div className="client-list-container">
         <div className="list-header">
           <h1>Client Management</h1>
@@ -116,18 +179,20 @@ const ClientManagement = () => {
             <button 
               className="add-client-btn"
               onClick={() => setShowForm(true)}
+              disabled={loading}
             >
-              <FaPlus /> Add Client
+              <FaPlus /> {loading ? 'Loading...' : 'Add Client'}
             </button>
           </div>
         </div>
 
         {filteredClients.length === 0 ? (
           <div className="empty-state">
-            <p>No clients found</p>
+            <p>{clients.length === 0 ? 'No clients yet' : 'No matching clients found'}</p>
             <button 
               className="add-client-btn"
               onClick={() => setShowForm(true)}
+              disabled={loading}
             >
               <FaPlus /> Add Your First Client
             </button>
@@ -163,6 +228,7 @@ const ClientManagement = () => {
                         className="edit-btn"
                         onClick={() => editClient(client.id)}
                         title="Edit"
+                        disabled={loading}
                       >
                         <FaEdit />
                       </button>
@@ -170,6 +236,7 @@ const ClientManagement = () => {
                         className="delete-btn"
                         onClick={() => deleteClient(client.id)}
                         title="Delete"
+                        disabled={loading}
                       >
                         <FaTrash />
                       </button>
@@ -187,7 +254,7 @@ const ClientManagement = () => {
           <div className="client-form-container">
             <div className="form-header">
               <h2>{editingId ? 'Edit Client' : 'Add New Client'}</h2>
-              <button className="close-btn" onClick={resetForm}>
+              <button className="close-btn" onClick={resetForm} disabled={loading}>
                 <FaTimes />
               </button>
             </div>
@@ -200,6 +267,7 @@ const ClientManagement = () => {
                   value={newClient.name} 
                   onChange={handleInputChange} 
                   placeholder="John Doe"
+                  disabled={loading}
                 />
                 {errors.name && <span className="error-message">{errors.name}</span>}
               </div>
@@ -211,6 +279,7 @@ const ClientManagement = () => {
                   value={newClient.email} 
                   onChange={handleInputChange} 
                   placeholder="john@example.com"
+                  disabled={loading}
                 />
                 {errors.email && <span className="error-message">{errors.email}</span>}
               </div>
@@ -222,6 +291,7 @@ const ClientManagement = () => {
                   value={newClient.phone} 
                   onChange={handleInputChange} 
                   placeholder="+1 (555) 123-4567"
+                  disabled={loading}
                 />
               </div>
               
@@ -232,6 +302,7 @@ const ClientManagement = () => {
                   value={newClient.company} 
                   onChange={handleInputChange} 
                   placeholder="Acme Inc."
+                  disabled={loading}
                 />
               </div>
               
@@ -242,6 +313,7 @@ const ClientManagement = () => {
                   value={newClient.address} 
                   onChange={handleInputChange} 
                   placeholder="123 Main St, City, Country"
+                  disabled={loading}
                 />
               </div>
               
@@ -253,16 +325,17 @@ const ClientManagement = () => {
                   onChange={handleInputChange} 
                   placeholder="Any additional information..."
                   rows="3"
+                  disabled={loading}
                 />
               </div>
             </div>
             
             <div className="form-footer">
-              <button className="cancel-btn" onClick={resetForm}>
+              <button className="cancel-btn" onClick={resetForm} disabled={loading}>
                 Cancel
               </button>
-              <button className="save-btn" onClick={addClient}>
-                <FaSave /> {editingId ? 'Update Client' : 'Save Client'}
+              <button className="save-btn" onClick={addClient} disabled={loading}>
+                <FaSave /> {loading ? 'Saving...' : editingId ? 'Update Client' : 'Save Client'}
               </button>
             </div>
           </div>
